@@ -5,17 +5,17 @@ import edu.tamu.cs.codesign.FrameworkExceptions.*;
 public class Fridge extends Things{
 
 	
-	Fridge(String Name)
+	Fridge(int deviceID)
 	{
-		super(Name);
+		super((short)deviceID);
 	}
 	
 
 	@Override
 	public boolean onDataReceive(String data) {
-		System.out.println("From Fridge: onDataReceive() I am Chilled!");
+		System.out.println("From Fridge: onDataReceive() Data Received");
 		try {
-		sendData("Hola!");
+		sendData("I am chilled!!");
 		}
 		catch (DeviceOfflineException e){
 			e.printStackTrace();

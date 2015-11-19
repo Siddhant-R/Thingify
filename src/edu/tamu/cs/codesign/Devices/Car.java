@@ -1,9 +1,9 @@
 package edu.tamu.cs.codesign.Devices;
 
 public class Car extends Things{
-	Car(String Name)
+	Car(int deviceID)
 	{
-		super(Name);
+		super((short)deviceID);
 	}
 	
 

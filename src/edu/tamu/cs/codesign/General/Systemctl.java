@@ -66,7 +66,7 @@ public class Systemctl {
 		  /* !!!!! TEMP !!!!!!! */
 	      
 		  
-		  /* END OF TEMP */
+		  /* !!!!! END OF TEMP */
 		
 		/* INIT COMMUNICATION GATEWAY */
 		try {

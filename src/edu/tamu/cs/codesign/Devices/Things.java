@@ -9,53 +9,98 @@ import edu.tamu.cs.codesign.FrameworkExceptions.DeviceOfflineException;
 import edu.tamu.cs.codesign.General.Systemctl;
 
 public abstract class Things {
+	/*
+	 * The "Things class" is an abstract class that defines rules to model 
+	 * a thing.
+	 * This class is the owner of the following
+	 * 		i) 	DeviceIdentity of the thing
+	 * 		ii) A reference to CommunicationHandeler object
+	 * 				This reference is set by CommunicationHandler when a 
+	 * 				a new device gets connected.
+	 * This class defines two major function that is used by user modeled
+	 * things classes.
+	 * 		i) 	SendData(String Data)
+	 * 		ii)	onDataReceive()
+	 */
 	
-	private String ThingName;
-	private CommunicationHandeler hd=null;
+
+	/*
+	 * General References
+	 */
+	Systemctl systemctl = new Systemctl();
+	DeviceManager deviceManager = systemctl.getInstanceOfDeviceManager();
 	
+	/*
+	 * A reference to communication handler object build specifically for
+	 * this thing.  
+	 */
+	private CommunicationHandeler communicationHandeler = null;
 	
-	public Things(String name)
+	/*
+	 * Holds Identity of the device
+	 * New memory is allocated here and is default constructible.
+	 */
+	private DeviceIdentity deviceIdentity;
+	
+	/*
+	 * Constructor
+	 */
+	public Things(short deviceID)
 	{
-		createIdentity(name);
+		/*
+		 * Create Identity of Device
+		 */
+		deviceIdentity = new DeviceIdentity(deviceID, this);
+		
+		/*
+		 * Register this device with Device Manager
+		 */
+		deviceManager.addStdEndDeviceIdentity(deviceIdentity);
 	}
 	
+	/*
+	 * Getter - Settter
+	 */
+	public DeviceIdentity getIdentity(){
+		
+		return deviceIdentity;
+	}
+	
+	/*
+	 * Setter : Communication Handler calls this method to set communication handler object 
+	 */
 	public void setHandleIncomingDataObj(CommunicationHandeler obj) {
-		hd = obj;
+		communicationHandeler = obj;
 	}
 	
+	/*
+	 * Returns true if Communication handler object is set.
+	 * This is used by communication handler itself to avoid multiple sessions
+	 */
+	public boolean checkExistanceOfHandleIncomingDataObj()
+	{
+		if (communicationHandeler == null)
+			return false;
+		return true;
+	}
+	
+	
+	/*
+	 * This method is called by user modeled things when it wants to send data to the end device
+	 * via the smart device
+	 */
 	public void sendData(String data) throws DeviceOfflineException{
-		if (hd == null) {
+		if (communicationHandeler == null) {
 			throw new DeviceOfflineException("Uplink has not been initated by end device");
 		}
-		hd.sendData(data);
-	}
-
-	private  void setName(String ThingName) { this.ThingName = ThingName; }
-	public  String getName() { return ThingName; }
-	
-	
-	public void createIdentity(String name){
-		DeviceIdentity di = new DeviceIdentity();
-		di.setIdentity(name, this);
-		setIdentity(di);
-		setName(name);
+		communicationHandeler.sendData(data);
 	}
 	
-	public void setIdentity(DeviceIdentity deviceIdentity)
-	{
-		Systemctl systemctl = new Systemctl();
-		DeviceManager deviceManager = systemctl.getInstanceOfDeviceManager();
-		deviceManager.addStdEndDeviceIdentity(deviceIdentity);
-		
-	}
-	public DeviceIdentity getIdentity(){
-		Systemctl systemctl = new Systemctl();
-		DeviceManager deviceManager = systemctl.getInstanceOfDeviceManager();
-		return deviceManager.getStdDeviceIdentity(getName());
-		
-	}
-
-	
+	/*
+	 * This is an abstract method. This method is run by communication handler when user data is
+	 * received for this device.
+	 * The user modeled class MUST implement this method.  	
+	 */
 	public abstract boolean onDataReceive(String data);
 	
 
