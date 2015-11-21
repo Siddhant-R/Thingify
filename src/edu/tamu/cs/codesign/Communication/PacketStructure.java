@@ -5,7 +5,7 @@ import edu.tamu.cs.codesign.General.Systemctl;
 
 public final class PacketStructure {
 	
-	public static final int headerSize = 6;
+	public static final int headerSize = 12;
 	
 	Systemctl systemctl = new Systemctl();
 	SysUtils utils = systemctl.getInstanceOfSysUtils();
@@ -17,14 +17,13 @@ public final class PacketStructure {
 	 * @param stringPacket
 	 * @return TokenizedPacket
 	 */
-	public TokenizedPacket tokenizePacket(String stringPacket) {
+	public synchronized TokenizedPacket tokenizePacket(String stringPacket) {
 		/*
 		 *  Extract Size
 		 *  BYTE 0 and BYTE 1 
 		 */
 			short size = utils.getShortFromStringBytes(stringPacket.substring(0, 2));
-		
-		
+				
 		/*
 		 *  Extract Packet Type
 		 *  BYTE 2 BYTE 3
@@ -33,25 +32,20 @@ public final class PacketStructure {
 		 *  This is for convenience.
 		 */
 			short packetTypeID = utils.getShortFromStringBytes(stringPacket.substring(2, 4));
-			PacketType packetType = PacketType.getPacketType(packetTypeID);
-		
-			
+			PacketType packetType = PacketType.getPacketType(packetTypeID);	
 		
 		/*
 		 *  Extract Device ID
-		 *  BYTE 4 BYTE 5
+		 *  BYTE 4 BYTE 5 BYTE 6 BYTE 7 BYTE 8 BYTE 9 BYTE 10 BYTE 11
 		 */
-		 
-			short deviceID = utils.getShortFromStringBytes(stringPacket.substring(4, 6));
+			long deviceID = utils.getLongFromStringBytes(stringPacket.substring(4, 12));
 
 		/*
 		 *  Extract PayLoad
-		 *  BYTE 6 to END of Packet
-		 */
-			
-			String payload = stringPacket.substring(6);
-		
-		
+		 *  BYTE 8 to END of Packet
+		 */			
+			String payload = stringPacket.substring(12);
+	
 		/*
 		 * Form TokenizedPacket
 		 */
@@ -62,9 +56,32 @@ public final class PacketStructure {
 	/*
 	 * TODO: Create Packet
 	 */
-	
+	public synchronized TokenizedPacket createTokenizedPacket(PacketType packetType, long deviceID, String payload) {
+		return new TokenizedPacket((short)payload.length(), packetType, deviceID, payload);
+	}
 	/*
-	 * TODO: Detokenizer convert tokenized packet to string
+	 * TODO: public String deTokenizePacket(TokenizedPacket packet) 
+	 * 
 	 */
+	public synchronized String deTokenizePacket(TokenizedPacket tokenizedPacket) {
+		System.out.println(tokenizedPacket.toString());
+		
+		String DeviceID = utils.getStringBytesFromLong(tokenizedPacket.deviceID());
+		//System.out.println("DevID: Sidze="+DeviceID.length()+" Packet="+DeviceID);
+		
+		String Payload = tokenizedPacket.payload();
+		//System.out.println("Payload: Sidze="+Payload.length()+" Packet="+Payload);
+
+		String PacketTypeID = utils.getStringBytesFromShort((short)tokenizedPacket.packetType().getPacketTypeID());
+		//System.out.println("PacketTypeID: Sidze="+PacketTypeID.length()+" Packet="+PacketTypeID);
+
+		String Size = utils.getStringBytesFromShort((short)Payload.length());
+		//System.out.println("Size: Sidze="+Size.length()+" Packet="+Size);
+
+		System.out.println(Size+PacketTypeID+DeviceID+Payload);
+		return Size+PacketTypeID+DeviceID+Payload;
+	}
+	
+	
 
 }

@@ -5,9 +5,9 @@ import edu.tamu.cs.codesign.FrameworkExceptions.*;
 public class Fridge extends Things{
 
 	
-	Fridge(int deviceID)
+	Fridge(long deviceID)
 	{
-		super((short)deviceID);
+		super(deviceID);
 	}
 	
 

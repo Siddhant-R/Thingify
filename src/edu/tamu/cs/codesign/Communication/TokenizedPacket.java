@@ -3,13 +3,13 @@ package edu.tamu.cs.codesign.Communication;
 public class TokenizedPacket {
 	private short Size;
 	private PacketType packetType;
-	private short DeviceID;
+	private long DeviceID;
 	private String Payload;
 	
 	/*
 	 * Parameterized constructor to create a new Tokenized Packet
 	 */
-	TokenizedPacket(short Size, PacketType packetType, short DeviceID, String Payload) {
+	TokenizedPacket(short Size, PacketType packetType, long DeviceID, String Payload) {
 		this.Size = Size;
 		this.packetType = packetType;
 		this.DeviceID = DeviceID;
@@ -18,16 +18,19 @@ public class TokenizedPacket {
 	}
 	
 	
+	/*
+	 * Getters
+	 */
+	
 	public short size() { return Size; }
-	
-	
 	public PacketType packetType() { return packetType; }
-	public short deviceID() { return DeviceID; }
+	public long deviceID() { return DeviceID; }
 	public String payload() { return Payload; }
 
 
 	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
+	 * Converts a tokenized packet to a string format
+	 * @warning This should only be used for display purposes
 	 */
 	public String toString() {
 		return  ("Size=" + Size +

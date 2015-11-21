@@ -23,7 +23,7 @@ public class CommunicationHandeler extends Thread {
 	 */
 	
 	protected Socket socket;
-	protected Short deviceID;
+	protected long deviceID;
 	Boolean session = false;
 	
 	/*
@@ -97,6 +97,7 @@ public class CommunicationHandeler extends Thread {
         {
         	try {
         		line = bufferedReaderInput.readLine();
+        		if(line == null) break;
         		/*
         		 * Our headers are of length PacketStructure.headerSize, If a received packet has length
         		 * less than that we can simply discard it.
@@ -113,6 +114,7 @@ public class CommunicationHandeler extends Thread {
         		 */
         		
         		TokenizedPacket packet = packetStructure.tokenizePacket(line);
+        		System.out.println(packet.toString());
         		
         		/*
         		 *  Check if it is a valid packet type
@@ -126,14 +128,14 @@ public class CommunicationHandeler extends Thread {
         		/*
         		 *  SESSION HANDLE
         		 */
-        		if(packet.packetType() == PacketType.SESSION_CREATE) {			
+        		if(packet.packetType() == PacketType.PK_SESSION_CREATE_END_DEV_REQ) {			
         			/*
         			 *  check if it is an active device from device manager, obtain reference to things object
         			 *  if the method returns null, it means no such device exist and you can exit safely.
         			 */
-        			thing = deviceManager.getStdEndDeviceThingObj(packet.deviceID());
-        			if(thing == null) {
-        				util.printDebug("Closing Connection to an unidentified device at"+ socket.getRemoteSocketAddress());
+        			
+        			if(deviceManager.getStdEndDeviceThingObj(packet.deviceID()) == null) {
+        				util.printDebug("Closing TCP Connection to an unidentified device at"+ socket.getRemoteSocketAddress());
         				printWriterOut.println("NACK | UNIDENTIFIED DEVICE");
         				throw new IOException("Unidentified Device");
         				}
@@ -146,38 +148,55 @@ public class CommunicationHandeler extends Thread {
         			 * !session is added because the same device of this session can again send a create session request
         			 * in that case we do not close the connection
         			 */
-        			else if(thing.checkExistanceOfHandleIncomingDataObj() && !session) {
+        			else if(deviceManager.getStdEndDeviceThingObj(packet.deviceID()).checkExistanceOfHandleIncomingDataObj() && !session) {
         				 util.printDebug("Multipe Session Request by "+ packet.deviceID() +" at "+ socket.getRemoteSocketAddress());
          				 printWriterOut.println("NACK | MULTIPLE SESSION REQUESTED");
          				 throw new IOException("MULTIPLE Session Request");
         			 }
         			else {
         			 /*
-        			  * Create a session : Hook this device to this thread. hook device id and make session true
-        			  * This will prevent other devices from using this thread
-        			  * Reply with ACK
+        			  * Check if Session exists and there is request for another session.
+        			  * !THIS IS A FILTER! Ideally Smart device should not recreate session
         			  * TODO: Reply with proper packet structure
         			  */
         			if(session){
+        				/*
+        				 * If the same device is requesting for another session for the same device
+        				 * throw a Invalid packet exception ( Note Device is not disconnected ) 
+        				 */
         				if(this.deviceID == packet.deviceID()) {
         					printWriterOut.println("NACK | SESSION ALREADY EXISTS");
         					throw new InvalidPacketException("DUPLICATE SESSION REQUEST");
         				}
-        				util.printDebug(packet.deviceID() + "tried overwriting session of "+this.deviceID);
+        				
+        				/*
+        				 * If a endDevice session is trying to create a session for another device
+        				 * @TEMPC: This is simply a SECURITY BREACH from  Ghanshyam's end .Kick him and terminate session :D
+        				 *  
+        				 */
+        				util.printDebug(packet.deviceID() + " tried overwriting session of " + this.deviceID);
         				printWriterOut.println("NACK | SESSION OVERWRITE REQUESTED | THIS IS ILLEGAL");
+        				releaseHook();
         				throw new IOException("ILLEGAL SESSION OPERATION");
         				
         			}
+        			/*
+        			 * Everything is fine ! Create a session :)
+        			 */
+        			 thing = deviceManager.getStdEndDeviceThingObj(packet.deviceID());
         			 this.deviceID = packet.deviceID();
         			 this.session =true;
         			 thing.getIdentity().setThingIP(socket.getRemoteSocketAddress().toString());
                   	 thing.setHandleIncomingDataObj(this);
-        			 printWriterOut.println("ACK");
+                  	 // !!!!! TEMP HANDLE
+                  	 PacketStructure packetStructure= new PacketStructure();
+                  	 TokenizedPacket ackPacket = packetStructure.createTokenizedPacket(PacketType.PK_SESSION_CREATE_END_DEV_RES, thing.getIdentity().getDeviceID(), "ACK");
+        			 printWriterOut.println(packetStructure.deTokenizePacket(ackPacket));
         			 util.printDebug("SESSION CREATED FOR DEVICE "+this.deviceID);
         			 
         			}
         		}
-        		if(packet.packetType() != PacketType.SESSION_CREATE) {
+        		if(packet.packetType() != PacketType.PK_SESSION_CREATE_END_DEV_REQ) {
         		/*
         		 * Session creation is managed, now further codes must be executed only if proper session exist
         		 * check hook status 
@@ -191,6 +210,7 @@ public class CommunicationHandeler extends Thread {
         		else {
         			/*
             		 * This part is protected by existence of a session
+            		 * Forward -> The packet to handlePacket() 
             		 */
         			if(handlePacket(packet)){
             			printWriterOut.println("ACK");
@@ -207,9 +227,18 @@ public class CommunicationHandeler extends Thread {
         	catch (InvalidPacketException ie) {
         		util.printDebug("InvalidPacketException : " + ie.getMessage());
         	}
+        	/*catch (NullPointerException ne) {
+        		/* 
+        		 * Unknown disconnection. 
+        		 * Lets close and release hook;
+        		 
+        		util.printDebug("Client Remotely Disconnected (Unknown): "+ socket.getRemoteSocketAddress());
+        		releaseHook();
+        		
+        	}*/
         	catch (Exception e)
         	{	
-        		//e.printStackTrace();
+        		e.printStackTrace();
         		printWriterOut.println("NACK | INVALID HEADERS RECEIVED");
                 printWriterOut.flush();
                 util.printDebug("Closed Connection : "+ socket.getRemoteSocketAddress());
@@ -221,10 +250,7 @@ public class CommunicationHandeler extends Thread {
 				} catch (IOException e1) {
 						e1.printStackTrace();
 				}
-                finally {
-                	if(thing!=null)
-    					thing.setHandleIncomingDataObj(null);
-                }
+                
                 return;
         	}
         		
@@ -233,36 +259,57 @@ public class CommunicationHandeler extends Thread {
         try {
         	util.printDebug("Client Remotely Disconnected: "+ socket.getRemoteSocketAddress());
 			socket.close();
+			releaseHook();
 		} catch (IOException e) {
 			//e.printStackTrace();
 		}
-        finally {
-        	if(thing!=null)
-				thing.setHandleIncomingDataObj(null);
-        }
+        
+        
         
 		
 	}
+	/*
+	 * This is the function that handles a packet.
+	 * This function is Session Safe.
+	 */
 	private boolean handlePacket(TokenizedPacket packet)
 	{
-		System.out.println("Displaying Packet");
-		System.out.println(packet.toString());
-		if(packet.packetType() == PacketType.REGULAR_TX){
+		util.printDebug(packet.toString());
+		
+		switch(packet.packetType()) {
+		
+		case PK_USER_MESSAGE_REQ:
+			/*
+			 *  A USER MESSAGE IS RECEIVED
+			 *  forward it to the thing's onDataReceive function
+			 */
 			thing.onDataReceive(packet.payload());
+			return true;
+			
+			
+		default:
+			break;
 		}
-		
-		
-		return true;
+		return false;
 	}
 	
 	
 	/*
 	 * Returns true if the device is hooked to the present thread
 	 */
-	private boolean isHooked(short deviceID) {
+	private boolean isHooked(long deviceID) {
 		if(this.session && this.deviceID == deviceID)
 			return true;
 		return false;
+	}
+	
+	public void releaseHook() {
+		this.session =false;
+		if(thing!=null) {
+    		util.printDebug("~ Released " + thing.getIdentity().getDeviceID());
+    		thing.setHandleIncomingDataObj(null);
+    	}
+		
 	}
 		/*
 		try { 

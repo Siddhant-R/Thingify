@@ -1,5 +1,7 @@
 package edu.tamu.cs.codesign.General;
 
+import java.nio.ByteBuffer;
+
 public class SysUtils {
 	
 	
@@ -33,6 +35,67 @@ public class SysUtils {
 		if(s.length()!=4) throw new IllegalArgumentException("Length of String Should be 4");
 		byte[] byteArray = s.getBytes();
 		return  java.nio.ByteBuffer.wrap(byteArray).getInt();
+	}
+	
+
+	/*
+	 * Input a string of length eight and return long value
+	 * For example ORIGINAL ENCODING 			0x62, 0x63, 0x64, 0x65, 0x62, 0x63, 0x64, 0x65
+	 * 						VISIBLE STRING  	bcdebcde
+	 * 						Returned LONG VAL 	
+	 */
+	
+	public long getLongFromStringBytes(String s) throws IllegalArgumentException
+	{
+		if(s.length()!=8) throw new IllegalArgumentException("Length of String Should be 8");
+		byte[] byteArray = s.getBytes();
+		return  java.nio.ByteBuffer.wrap(byteArray).getLong();
+	}
+	
+	/*
+	 * Input a short value and return byte string of length 2
+	 * For example 		
+	 * 						INPUT Short VAL 	25187
+	 * 						ENCODING 			0x62, 0x63
+	 * 						OUTPUT  STRING  	bc
+	 */
+	public String getStringBytesFromShort(Short val) {
+		byte[] bstream =  new byte[2];
+	    ByteBuffer buffer = ByteBuffer.allocate(bstream.length);
+	    buffer.putShort(val);
+	    bstream = buffer.array();
+		return new String(bstream);
+	}
+	
+	/*
+	 * Input a int value and return byte string of length 2
+	 * For example 		
+	 * 						INPUT Integer VAL 	1650680933
+	 * 						ENCODING 			0x62, 0x63, 0x64, 0x65
+	 * 						OUTPUT  STRING  	bcde
+	 */
+	public String getStringBytesFromInt(int val) {
+		byte[] bstream =  new byte[4];
+	    ByteBuffer buffer = ByteBuffer.allocate(bstream.length);
+	    buffer.putInt(val);
+	    bstream = buffer.array();
+		return new String(bstream);
+	}
+	
+	
+	/*
+	 * Input a long value and return byte string of length 2
+	 * For example 		
+	 * 						INPUT Integer VAL 	
+	 * 						ENCODING 			0x62, 0x63, 0x64, 0x65, 0x62, 0x63, 0x64, 0x65
+	 * 						OUTPUT  STRING  	bcdebcde
+	 */
+	public String getStringBytesFromLong(long val) {
+		byte[] bstream =  new byte[8];
+	    ByteBuffer buffer = ByteBuffer.allocate(bstream.length);
+	    buffer.putLong(val);
+	    bstream = buffer.array();
+		return new String(bstream);
 	}
 	
 	

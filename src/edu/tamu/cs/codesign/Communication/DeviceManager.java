@@ -32,10 +32,10 @@ public class DeviceManager {
 	 * THROWS NoSuchDevice Exception if not found.
 	 * TODO: return null or throw an exception ?
 	 */
-	public synchronized DeviceIdentity getStdDeviceIdentity(Short deviceID) throws NoSuchDeviceException{
+	public synchronized DeviceIdentity getStdDeviceIdentity(long deviceID) throws NoSuchDeviceException{
 		for (DeviceIdentity deviceIdentity : stdEndDevices) {
 			
-			if(deviceIdentity.getDeviceID().compareTo(deviceID) == 0) { 
+			if(deviceIdentity.getDeviceID() == deviceID) { 
 				return deviceIdentity; 
 				}
 		}
@@ -47,9 +47,9 @@ public class DeviceManager {
 	 * NOTE: This is just a wrapper function to provide simplicity. This doesnot add any additional 
 	 * functionality to Device Manager Class 
 	 */
-	public synchronized Things getStdEndDeviceThingObj(Short deviceID) throws NoSuchDeviceException{
+	public synchronized Things getStdEndDeviceThingObj(long deviceID) throws NoSuchDeviceException{
 		for (DeviceIdentity deviceIdentity : stdEndDevices) {
-			if(deviceIdentity.getDeviceID().compareTo(deviceID)==0)
+			if(deviceIdentity.getDeviceID() == deviceID)
 			{ 
 				return deviceIdentity.getThingObj();
 			}

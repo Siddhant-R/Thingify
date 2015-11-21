@@ -14,7 +14,7 @@ public class ThingsInitializer {
 		
 		//Initalize fridge
 		try {
-			Fridge fridge = new Fridge(13616);
+			Fridge fridge = new Fridge(3472328296227681584L);
 			sysUtils.printSystem("OK", "ThingsInitializer : myFridge Initalization");
 			//fridge.sendData("hi!");
 		}
@@ -26,7 +26,7 @@ public class ThingsInitializer {
 		
 		//Initialize Car
 		try {
-		Car thingCar = new Car(13617);
+		Car thingCar = new Car(3472328296227681584L);
 		sysUtils.printSystem("OK", "ThingsInitializer : Car Reva Initalization");
 		}
 		catch (Exception e){

@@ -22,7 +22,7 @@ public class DeviceIdentity {
 	 * This is of type short and is a mandatory @param.
 	 * This is set globally by user
 	 */
-	private Short deviceID;
+	private long deviceID;
 	
 	/*
 	 * String thing_name
@@ -43,7 +43,7 @@ public class DeviceIdentity {
 	 *  deviceID and thing_obj are required to construct an identity
 	 */
 	
-	public DeviceIdentity(short deviceID, Things thing_obj) {
+	public DeviceIdentity(long deviceID, Things thing_obj) {
 		this.deviceID = deviceID;
 		this.thing_obj = thing_obj;
 	}
@@ -57,7 +57,7 @@ public class DeviceIdentity {
 	 */
 	public Things getThingObj() { return thing_obj; }
 	public String getThingName() { return thing_name; }
-	public Short getDeviceID() { return deviceID; }
+	public long getDeviceID() { return deviceID; }
 	public void setThingIP(String IP){ this.IP = IP;}
 	public String getThingIP() { return this.IP; }
 	

@@ -45,7 +45,7 @@ public abstract class Things {
 	/*
 	 * Constructor
 	 */
-	public Things(short deviceID)
+	public Things(long deviceID)
 	{
 		/*
 		 * Create Identity of Device
