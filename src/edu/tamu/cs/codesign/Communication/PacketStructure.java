@@ -57,7 +57,7 @@ public final class PacketStructure {
 	 * TODO: Create Packet
 	 */
 	public synchronized TokenizedPacket createTokenizedPacket(PacketType packetType, long deviceID, String payload) {
-		return new TokenizedPacket((short)payload.length(), packetType, deviceID, payload);
+		return new TokenizedPacket((short)25187, packetType, deviceID, payload);
 	}
 	/*
 	 * TODO: public String deTokenizePacket(TokenizedPacket packet) 
@@ -75,11 +75,22 @@ public final class PacketStructure {
 		String PacketTypeID = utils.getStringBytesFromShort((short)tokenizedPacket.packetType().getPacketTypeID());
 		//System.out.println("PacketTypeID: Sidze="+PacketTypeID.length()+" Packet="+PacketTypeID);
 
-		String Size = utils.getStringBytesFromShort((short)Payload.length());
+		String Size = utils.getStringBytesFromShort(tokenizedPacket.size());
 		//System.out.println("Size: Sidze="+Size.length()+" Packet="+Size);
 
-		System.out.println(Size+PacketTypeID+DeviceID+Payload);
-		return Size+PacketTypeID+DeviceID+Payload;
+		String s = Size+PacketTypeID+DeviceID+Payload;
+		System.out.println("SENT: "+s);
+	
+		
+		byte[] bstream = s.getBytes();
+		
+		StringBuilder sb = new StringBuilder();
+		
+		for (Byte b : bstream)
+			sb.append(String.format("%02X ", b));
+		System.out.println(sb+"\n");
+		
+		return s;
 	}
 	
 	

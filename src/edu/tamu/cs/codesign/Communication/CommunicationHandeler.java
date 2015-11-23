@@ -38,6 +38,8 @@ public class CommunicationHandeler extends Thread {
     BufferedReader bufferedReaderInput = null;
     PrintWriter printWriterOut =null;
     
+    
+    
    
 	/*
 	 * Constructor
@@ -56,8 +58,11 @@ public class CommunicationHandeler extends Thread {
 	 * This is used by things objects to send data to end device.
 	 * TODO: Convert this to packet structure and add proper header information
 	 */
-	public void sendData(String data) {
-		printWriterOut.println(data);
+	public void sendData(String payload) {
+		PacketStructure packetStructure= new PacketStructure();
+     	TokenizedPacket userPacket = packetStructure.createTokenizedPacket(PacketType.PK_USER_MESSAGE_DTS_REQ,
+     			thing.getIdentity().getDeviceID(), payload);
+     	printWriterOut.println(packetStructure.deTokenizePacket(userPacket));
 	}
 	
 	
@@ -105,7 +110,7 @@ public class CommunicationHandeler extends Thread {
         		 */
         		if(line.length() < PacketStructure.headerSize){
         			util.printDebug("Invalid Header received from "+ socket.getRemoteSocketAddress());
-    				printWriterOut.println("NACK | INVALID HEADER");
+    				printWriterOut.println("NAK|INVALID HEADER");
     				throw new InvalidPacketException("Invalid Headers");
         		}
         		
@@ -121,7 +126,10 @@ public class CommunicationHandeler extends Thread {
         		 */
         		if(packet.packetType() == PacketType.UNKNOWN){
         			util.printDebug("Unknown Packet Type received from "+ socket.getRemoteSocketAddress());
-    				printWriterOut.println("NACK | UNKNOWN PACKET TYPE");
+        			PacketStructure packetStructure= new PacketStructure();
+                 	TokenizedPacket nakPacket = packetStructure.createTokenizedPacket(PacketType.PK_SESSION_CREATE_END_DEV_RES,
+                 			packet.deviceID(), "NAK|UNKNOWN PACKET TYPE");
+                 	printWriterOut.println(packetStructure.deTokenizePacket(nakPacket));
     				throw new InvalidPacketException("Unknown Packet");
         		}
         		
@@ -136,7 +144,10 @@ public class CommunicationHandeler extends Thread {
         			
         			if(deviceManager.getStdEndDeviceThingObj(packet.deviceID()) == null) {
         				util.printDebug("Closing TCP Connection to an unidentified device at"+ socket.getRemoteSocketAddress());
-        				printWriterOut.println("NACK | UNIDENTIFIED DEVICE");
+        				PacketStructure packetStructure= new PacketStructure();
+                     	TokenizedPacket nakPacket = packetStructure.createTokenizedPacket(PacketType.PK_SESSION_CREATE_END_DEV_RES,
+                     			packet.deviceID(), "NAK|UNIDENTIFIED DEVICE");
+                     	printWriterOut.println(packetStructure.deTokenizePacket(nakPacket));
         				throw new IOException("Unidentified Device");
         				}
         			
@@ -150,7 +161,10 @@ public class CommunicationHandeler extends Thread {
         			 */
         			else if(deviceManager.getStdEndDeviceThingObj(packet.deviceID()).checkExistanceOfHandleIncomingDataObj() && !session) {
         				 util.printDebug("Multipe Session Request by "+ packet.deviceID() +" at "+ socket.getRemoteSocketAddress());
-         				 printWriterOut.println("NACK | MULTIPLE SESSION REQUESTED");
+        				 PacketStructure packetStructure= new PacketStructure();
+                         TokenizedPacket nakPacket = packetStructure.createTokenizedPacket(PacketType.PK_SESSION_CREATE_END_DEV_RES,
+                      			packet.deviceID(), "NAK|MULTIPLE SESSION REQUESTED");
+                      	 printWriterOut.println(packetStructure.deTokenizePacket(nakPacket));
          				 throw new IOException("MULTIPLE Session Request");
         			 }
         			else {
@@ -165,7 +179,10 @@ public class CommunicationHandeler extends Thread {
         				 * throw a Invalid packet exception ( Note Device is not disconnected ) 
         				 */
         				if(this.deviceID == packet.deviceID()) {
-        					printWriterOut.println("NACK | SESSION ALREADY EXISTS");
+        					PacketStructure packetStructure= new PacketStructure();
+                         	TokenizedPacket nakPacket = packetStructure.createTokenizedPacket(PacketType.PK_SESSION_CREATE_END_DEV_RES,
+                         			packet.deviceID(), "NAK|SESSION ALREADY EXISTS");
+                         	printWriterOut.println(packetStructure.deTokenizePacket(nakPacket));
         					throw new InvalidPacketException("DUPLICATE SESSION REQUEST");
         				}
         				
@@ -175,7 +192,10 @@ public class CommunicationHandeler extends Thread {
         				 *  
         				 */
         				util.printDebug(packet.deviceID() + " tried overwriting session of " + this.deviceID);
-        				printWriterOut.println("NACK | SESSION OVERWRITE REQUESTED | THIS IS ILLEGAL");
+        				PacketStructure packetStructure= new PacketStructure();
+                     	TokenizedPacket nakPacket = packetStructure.createTokenizedPacket(PacketType.PK_SESSION_CREATE_END_DEV_RES,
+                     			packet.deviceID(), "NAK|SESSION OVERWRITE REQUESTED|THIS IS ILLEGAL");
+                     	printWriterOut.println(packetStructure.deTokenizePacket(nakPacket));
         				releaseHook();
         				throw new IOException("ILLEGAL SESSION OPERATION");
         				
@@ -205,7 +225,11 @@ public class CommunicationHandeler extends Thread {
         		 */
         		if(!isHooked(packet.deviceID())) {
         			util.printDebug("Device Injection Detcted : Injected "+ packet.deviceID() +" at "+ socket.getRemoteSocketAddress());
-    				 printWriterOut.println("NACK | ILLEGAL DEVICE INJECTION");
+        			PacketStructure packetStructure= new PacketStructure();
+                 	TokenizedPacket nakPacket = packetStructure.createTokenizedPacket(PacketType.PK_SESSION_CREATE_END_DEV_RES,
+                 			packet.deviceID(), "NAK|ILLEGAL DEVICE INJECTION");
+                 	printWriterOut.println(packetStructure.deTokenizePacket(nakPacket));
+    				 
         		}
         		else {
         			/*
@@ -213,10 +237,12 @@ public class CommunicationHandeler extends Thread {
             		 * Forward -> The packet to handlePacket() 
             		 */
         			if(handlePacket(packet)){
+        				
             			printWriterOut.println("ACK");
             		}
             		else
             		{
+            			
             		printWriterOut.println("NACK | Packet Could Not be Handled");
             		
             		}
@@ -239,7 +265,7 @@ public class CommunicationHandeler extends Thread {
         	catch (Exception e)
         	{	
         		e.printStackTrace();
-        		printWriterOut.println("NACK | INVALID HEADERS RECEIVED");
+        		printWriterOut.println("NAK|INVALID HEADERS RECEIVED");
                 printWriterOut.flush();
                 util.printDebug("Closed Connection : "+ socket.getRemoteSocketAddress());
         		printWriterOut.flush();
@@ -278,7 +304,7 @@ public class CommunicationHandeler extends Thread {
 		
 		switch(packet.packetType()) {
 		
-		case PK_USER_MESSAGE_REQ:
+		case PK_USER_MESSAGE_STD_REQ:
 			/*
 			 *  A USER MESSAGE IS RECEIVED
 			 *  forward it to the thing's onDataReceive function

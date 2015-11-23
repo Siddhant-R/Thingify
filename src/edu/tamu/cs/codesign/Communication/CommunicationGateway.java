@@ -17,7 +17,7 @@ public class CommunicationGateway extends AbstractCommunicationGateway {
 	}
 	public void _init() {
 		setState(1);
-		setPort(54321);
+		setPort(54322);
 		communicationGateway();
 		
 	}
