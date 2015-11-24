@@ -25,6 +25,7 @@ public class CommunicationHandeler extends Thread {
 	protected Socket socket;
 	protected long deviceID;
 	Boolean session = false;
+	Boolean alive = true;
 	
 	/*
 	 * General References
@@ -98,7 +99,7 @@ public class CommunicationHandeler extends Thread {
         
         
         String line = null;
-        while (!printWriterOut.checkError())
+        while (!printWriterOut.checkError() && alive)
         {
         	try {
         		line = bufferedReaderInput.readLine();
@@ -223,10 +224,18 @@ public class CommunicationHandeler extends Thread {
         		 * if hook fails, it means another device is being injected to this device session. This can be a flaw
         		 * at smart device level or because of a sniffed network 
         		 */
+        		if(!session) {
+        			PacketStructure packetStructure= new PacketStructure();
+                     TokenizedPacket nakPacket = packetStructure.createTokenizedPacket(packet.packetType(),
+                     		packet.deviceID(), "NAK|NO SESSION EXISTS");
+                     printWriterOut.println(packetStructure.deTokenizePacket(nakPacket));
+    				throw new InvalidPacketException("NO SESSION EXISTS");
+        			}
+        			
         		if(!isHooked(packet.deviceID())) {
         			util.printDebug("Device Injection Detcted : Injected "+ packet.deviceID() +" at "+ socket.getRemoteSocketAddress());
         			PacketStructure packetStructure= new PacketStructure();
-                 	TokenizedPacket nakPacket = packetStructure.createTokenizedPacket(PacketType.PK_SESSION_CREATE_END_DEV_RES,
+                 	TokenizedPacket nakPacket = packetStructure.createTokenizedPacket(packet.packetType(),
                  			packet.deviceID(), "NAK|ILLEGAL DEVICE INJECTION");
                  	printWriterOut.println(packetStructure.deTokenizePacket(nakPacket));
     				 
@@ -269,24 +278,20 @@ public class CommunicationHandeler extends Thread {
                 printWriterOut.flush();
                 util.printDebug("Closed Connection : "+ socket.getRemoteSocketAddress());
         		printWriterOut.flush();
-                try {
-					socket.close();
-					
-					return;
-				} catch (IOException e1) {
-						e1.printStackTrace();
-				}
                 
-                return;
+                disconnect();
+				//socket.close();
+				return;
         	}
         		
             
         }
         try {
-        	util.printDebug("Client Remotely Disconnected: "+ socket.getRemoteSocketAddress());
-			socket.close();
-			releaseHook();
-		} catch (IOException e) {
+        	if(alive)util.printDebug("Client Remotely Disconnected: "+ socket.getRemoteSocketAddress());
+			/*socket.close();
+			releaseHook();*/
+        	disconnect();
+		} catch (Exception e) {
 			//e.printStackTrace();
 		}
         
@@ -310,6 +315,13 @@ public class CommunicationHandeler extends Thread {
 			 *  forward it to the thing's onDataReceive function
 			 */
 			thing.onDataReceive(packet.payload());
+			return true;
+			
+		case PK_SESSION_DESTROY_END_DEV_REQ:
+			/*
+			 * 
+			 */
+			disconnect();
 			return true;
 			
 			
@@ -336,6 +348,18 @@ public class CommunicationHandeler extends Thread {
     		thing.setHandleIncomingDataObj(null);
     	}
 		
+	}
+	
+	public void disconnect(){
+		releaseHook();
+		try {
+			socket.close();
+			util.printDebug("SESSION DISCONNECTED");
+			
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 		/*
 		try { 

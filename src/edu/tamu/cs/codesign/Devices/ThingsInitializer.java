@@ -26,7 +26,7 @@ public class ThingsInitializer {
 		
 		//Initialize Car
 		try {
-		Car thingCar = new Car(3472328296227681584L);
+		Car thingCar = new Car(3472328296227681585L);
 		sysUtils.printSystem("OK", "ThingsInitializer : Car Reva Initalization");
 		}
 		catch (Exception e){
