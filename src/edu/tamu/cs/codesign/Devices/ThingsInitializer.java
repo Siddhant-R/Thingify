@@ -1,6 +1,8 @@
 package edu.tamu.cs.codesign.Devices;
 
 
+import java.util.Vector;
+
 import edu.tamu.cs.codesign.General.SysUtils;
 import edu.tamu.cs.codesign.General.Systemctl;
 
@@ -14,7 +16,9 @@ public class ThingsInitializer {
 		
 		//Initalize fridge
 		try {
-			Fridge fridge = new Fridge(3472328296227681584L);
+			Vector<Fridge> fridge= new Vector();
+			fridge.addElement(new Fridge(3472328296227681584L));
+			
 			sysUtils.printSystem("OK", "ThingsInitializer : myFridge Initalization");
 			//fridge.sendData("hi!");
 		}

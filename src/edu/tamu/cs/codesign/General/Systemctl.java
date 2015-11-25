@@ -99,6 +99,17 @@ public class Systemctl {
 			
 		}
 		
+		/* Database Check */
+		
+		DB db = new DB();
+		if(db.checkConnection()) {
+			utils.printSystem("OK", "Database Connection");
+		}
+		else {
+			utils.printSystem("FAIL", "Database Connection");
+		}
+			
+		
 
 
 

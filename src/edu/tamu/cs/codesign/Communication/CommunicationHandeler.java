@@ -10,6 +10,7 @@ import java.net.Socket;
 
 import edu.tamu.cs.codesign.Devices.Things;
 import edu.tamu.cs.codesign.FrameworkExceptions.InvalidPacketException;
+import edu.tamu.cs.codesign.General.DB;
 import edu.tamu.cs.codesign.General.SysUtils;
 import edu.tamu.cs.codesign.General.Systemctl;
 
@@ -38,6 +39,7 @@ public class CommunicationHandeler extends Thread {
 	InputStream inputStream = null;
     BufferedReader bufferedReaderInput = null;
     PrintWriter printWriterOut =null;
+    DB dbase = null;
     
     
     
@@ -51,6 +53,7 @@ public class CommunicationHandeler extends Thread {
 		util = systemctl.getInstanceOfSysUtils();
 		deviceManager = systemctl.getInstanceOfDeviceManager();
 		packetStructure = new PacketStructure();
+		dbase = new DB();
 		thing = null;
 		}
 	
@@ -120,6 +123,7 @@ public class CommunicationHandeler extends Thread {
         		 */
         		
         		TokenizedPacket packet = packetStructure.tokenizePacket(line);
+        		dbase.runSQL("raw-packet-log", packet.packetType().name(), Long.toString(packet.deviceID()), packet.payload());
         		System.out.println(packet.toString());
         		
         		/*
@@ -214,6 +218,9 @@ public class CommunicationHandeler extends Thread {
                   	 TokenizedPacket ackPacket = packetStructure.createTokenizedPacket(PacketType.PK_SESSION_CREATE_END_DEV_RES, thing.getIdentity().getDeviceID(), "ACK");
         			 printWriterOut.println(packetStructure.deTokenizePacket(ackPacket));
         			 util.printDebug("SESSION CREATED FOR DEVICE "+this.deviceID);
+             		 dbase.runSQL("session-create", Long.toString(packet.deviceID()));
+
+        			 
         			 
         			}
         		}
@@ -346,6 +353,7 @@ public class CommunicationHandeler extends Thread {
 		if(thing!=null) {
     		util.printDebug("~ Released " + thing.getIdentity().getDeviceID());
     		thing.setHandleIncomingDataObj(null);
+    		dbase.runSQL("session-terminate", Long.toString(thing.getIdentity().getDeviceID()));
     	}
 		
 	}
