@@ -23,6 +23,7 @@ public final class PacketStructure {
 		 *  BYTE 0 and BYTE 1 
 		 */
 			short size = utils.getShortFromStringBytes(stringPacket.substring(0, 2));
+			System.out.println("[] size parsed = "+size);
 				
 		/*
 		 *  Extract Packet Type
@@ -42,14 +43,14 @@ public final class PacketStructure {
 
 		/*
 		 *  Extract PayLoad
-		 *  BYTE 8 to END of Packet
+		 *  BYTE 12 to END of Packet
 		 */			
 			String payload = stringPacket.substring(12);
 	
 		/*
 		 * Form TokenizedPacket
 		 */
-			return new TokenizedPacket(size, packetType, deviceID, payload);
+			return new TokenizedPacket(packetType, deviceID, payload);
 			
 	}
 	
@@ -57,7 +58,7 @@ public final class PacketStructure {
 	 * TODO: Create Packet
 	 */
 	public synchronized TokenizedPacket createTokenizedPacket(PacketType packetType, long deviceID, String payload) {
-		return new TokenizedPacket((short)25187, packetType, deviceID, payload);
+		return new TokenizedPacket(packetType, deviceID, payload);
 	}
 	/*
 	 * TODO: public String deTokenizePacket(TokenizedPacket packet) 
@@ -81,7 +82,8 @@ public final class PacketStructure {
 		String s = Size+PacketTypeID+DeviceID+Payload;
 		System.out.println("SENT: "+s);
 	
-		
+		System.out.print(">>> ");
+
 		byte[] bstream = s.getBytes();
 		
 		StringBuilder sb = new StringBuilder();

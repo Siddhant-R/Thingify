@@ -9,11 +9,9 @@ public class TokenizedPacket {
 	/*
 	 * Parameterized constructor to create a new Tokenized Packet
 	 */
-	TokenizedPacket(short Size, PacketType packetType, long DeviceID, String Payload) {
-		
-		//@TEMP OVERRIDE SIZE !!!!!!!
-		//this.Size = Size;
-		this.Size = (short)25187;
+	TokenizedPacket(PacketType packetType, long DeviceID, String Payload) {
+
+		this.Size = (short) (Payload.length()+PacketStructure.headerSize);
 		this.packetType = packetType;
 		this.DeviceID = DeviceID;
 		this.Payload = Payload;

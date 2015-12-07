@@ -107,6 +107,18 @@ public class CommunicationHandeler extends Thread {
         	try {
         		line = bufferedReaderInput.readLine();
         		if(line == null) break;
+        		
+        		/*
+        		 * TEMP!!! TO DISPLAY INCOMING BYTE STREAM
+        		 */
+        		System.out.println("RECEIEVED: "+line);
+        		byte[] bstream = line.getBytes();
+        		StringBuilder sb = new StringBuilder();
+        		System.out.print("<<< ");
+        		for (Byte b : bstream)
+        			sb.append(String.format("%02X ", b));
+        		System.out.println(sb+"\n");
+        		
         		/*
         		 * Our headers are of length PacketStructure.headerSize, If a received packet has length
         		 * less than that we can simply discard it.
