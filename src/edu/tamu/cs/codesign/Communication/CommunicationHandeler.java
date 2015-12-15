@@ -227,7 +227,7 @@ public class CommunicationHandeler extends Thread {
                   	 thing.setHandleIncomingDataObj(this);
                   	 // !!!!! TEMP HANDLE
                   	 PacketStructure packetStructure= new PacketStructure();
-                  	 TokenizedPacket ackPacket = packetStructure.createTokenizedPacket(PacketType.PK_SESSION_CREATE_END_DEV_RES, thing.getIdentity().getDeviceID(), "ACK");
+                  	 TokenizedPacket ackPacket = packetStructure.createTokenizedPacket(PacketType.PK_SESSION_CREATE_END_DEV_RES, thing.getIdentity().getDeviceID(), "ACKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq");
         			 printWriterOut.println(packetStructure.deTokenizePacket(ackPacket));
         			 util.printDebug("SESSION CREATED FOR DEVICE "+this.deviceID);
              		 dbase.runSQL("session-create", Long.toString(packet.deviceID()));

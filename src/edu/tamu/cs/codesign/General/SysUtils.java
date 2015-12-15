@@ -21,6 +21,12 @@ public class SysUtils {
 		if(s.length()!=2) throw new IllegalArgumentException("Length of String Should be 2");
 		byte[] byteArray = s.getBytes();
 		return  java.nio.ByteBuffer.wrap(byteArray).getShort();
+		/*char[] charArray = s.toCharArray();
+		short _short;
+		_short=(short) charArray[0];
+		_short=(short) (_short << 8);
+		_short=(short) (_short|charArray[1]);
+		return _short;*/
 	}
 	
 	/*
@@ -65,6 +71,11 @@ public class SysUtils {
 	    buffer.putShort(val);
 	    bstream = buffer.array();
 		return new String(bstream);
+		/*
+		char _char[] = new char [2];
+		_char[0] = (char) (val & 0x00FF);
+		_char[1] = (char) ((val >>> 8 ) & 0x00FF);
+		return new String(_char);*/
 	}
 	
 	/*
