@@ -15,8 +15,8 @@ public final class CONF {
 
 
 	   //  Database credentials
-	   static final String __SQLUSER 		= "IOT_WORKER";
-	   static final String __SQLPASS 		= "things";
+	   static final String __SQLUSER 		= "#PUT SQL USER NAME HERE";
+	   static final String __SQLPASS 		= "#PUT PASSWORD HERE";
 	   static final String __SQLDBNAME 		= "IOT_TEST";
 	
 
